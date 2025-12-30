@@ -11,14 +11,14 @@ from __future__ import annotations # 允許類別內部使用類別本身作為�
 
 from dataclasses import dataclass # 提供簡易的資料類別定義
 from pathlib import Path # 用於處理檔案路徑
-from typing import TYPE_CHECKING    # 用於型別檢查時的條件匯入
+from typing import Any, TYPE_CHECKING    # 用於型別檢查時的條件匯入
 from urllib.request import urlretrieve # 用於從 URL 下載檔案
 
 import mediapipe as mp
 
 if TYPE_CHECKING:
     from mediapipe.tasks.python.components.containers import Detection
-    from mediapipe.tasks.vision import ObjectDetector as MediaPipeObjectDetector
+    from mediapipe.tasks.vision import ObjectDetector as MediaPipeObjectDetector  # type: ignore[import-untyped]
 
 # ==============================================================================
 # 常數設定
@@ -59,7 +59,7 @@ class DetectionResult:
     width: int
     height: int
 
-    def __str__(self) -> str:
+    def __str__(self) -> str:  # 格式化輸出偵測結果
         return (
             f"偵測 {self.index}: label={self.label}, score={self.score:.2f}, "
             f"box=(x={self.x}, y={self.y}, w={self.width}, h={self.height})"
@@ -124,7 +124,7 @@ class ObjectDetector:
         return mp.tasks.vision.ObjectDetector.create_from_options(options)
 
     @staticmethod
-    def _parse_detection(idx: int, detection: Detection) -> DetectionResult:
+    def _parse_detection(idx: int, detection: Any) -> DetectionResult:
         """將 MediaPipe Detection 轉換為 DetectionResult。"""
         box = detection.bounding_box
         x = max(0, box.origin_x)
