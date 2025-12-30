@@ -1,4 +1,4 @@
-# MediaPipe Python 
+# MediaPipe 使用Python開發 
 
 > **最後更新**: 2025年12月30日
 
