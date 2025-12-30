@@ -198,22 +198,22 @@ class StreamObjectDetector:
 
         try:
             while True:
-                ret, frame = self._cap.read()
+                ret, frame = self._cap.read() # 讀取攝影機畫面, ret表示是否成功
                 if not ret:
                     print("無法讀取攝影機畫面")
                     break
 
                 # 轉換為 MediaPipe Image 格式（RGB）
-                frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame_rgb)
+                frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  # 轉換為 RGB 格式
+                mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame_rgb) # 建立 MediaPipe Image
 
                 # 執行物件偵測（VIDEO 模式需要時間戳記）
-                frame_count += 1
+                frame_count += 1 # 計數幀數
                 timestamp_ms = int(frame_count * (1000 / 30))  # 假設 30 FPS
                 result = self._detector.detect_for_video(mp_image, timestamp_ms)
 
                 # 解析偵測結果
-                detections = self._parse_detections(result.detections or [])
+                detections = self._parse_detections(result.detections or []) # 轉換為 DetectionResult 清單
 
                 # 繪製偵測結果
                 frame = self._draw_detections(frame, detections)
@@ -223,11 +223,11 @@ class StreamObjectDetector:
                 cv2.putText(
                     frame,
                     info_text,
-                    (10, 30),
+                    (10, 30), # 位置
                     cv2.FONT_HERSHEY_SIMPLEX,
-                    0.7,
-                    (0, 255, 0),
-                    2,
+                    0.7, # 字型大小
+                    (0, 255, 0), # 顏色 (綠色)
+                    2, # 粗細
                 )
 
                 # 顯示影像
@@ -239,7 +239,7 @@ class StreamObjectDetector:
                     break
 
         finally:
-            if self._cap:
+            if self._cap: # 確保攝影機資源釋放
                 self._cap.release()
             cv2.destroyAllWindows()
             print("攝影機已關閉")
