@@ -41,6 +41,7 @@ DEFAULT_MODEL_URL = (
     "https://storage.googleapis.com/mediapipe-models/hand_landmarker/"
     "hand_landmarker/float16/1/hand_landmarker.task"
 )
+DEFAULT_FPS = 30  # 估計攝影機 FPS，供 timestamp 使用
 
 
 # ==============================================================================
@@ -76,6 +77,7 @@ class HandLandmarkConfig:
     camera_id: int = DEFAULT_CAMERA_ID
     model_path: str = DEFAULT_MODEL_PATH
     model_url: str = DEFAULT_MODEL_URL
+    target_fps: int = DEFAULT_FPS  # 供 timestamp 計算
 
     # MediaPipe HandLandmarker 參數
     num_hands: int = 2
@@ -89,10 +91,7 @@ class HandLandmarkConfig:
     point_color_bgr: tuple[int, int, int] = (0, 255, 0)  # 綠色
     point_thickness: int = -1  # -1 表示填滿
     text_scale: float = 0.6
-    text_color_bgr: tuple[int, int, int] = (0, 0, 0)  # 黑色
     text_thickness: int = 2
-    text_bg_color_bgr: tuple[int, int, int] = (0, 255, 0)  # 綠底
-    text_padding: int = 2
 
 
 # ==============================================================================
@@ -191,6 +190,19 @@ class StreamHandLandmarker:
             self.config.text_thickness,
         )
 
+    @staticmethod
+    def _draw_info_text(frame: np.ndarray, text: str) -> None:
+        """在左上角顯示提示文字。"""
+        cv2.putText(
+            frame,
+            text,
+            (10, 30),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.8,
+            (0, 255, 0),
+            2,
+        )
+
     def _draw_left_hand_landmarks(self, frame: np.ndarray, landmarks: list[Any]) -> None:
         """將左手 landmarks 依照官方編號繪製到影像上。"""
         height, width = frame.shape[:2]
@@ -233,7 +245,7 @@ class StreamHandLandmarker:
 
                 # 執行手部地標偵測（VIDEO 模式需要時間戳記）
                 frame_count += 1
-                timestamp_ms = int(frame_count * (1000 / 30))  # 假設 30 FPS
+                timestamp_ms = int(frame_count * (1000 / self.config.target_fps))
                 result = self._landmarker.detect_for_video(mp_image, timestamp_ms)
 
                 # 只取左手
@@ -243,15 +255,7 @@ class StreamHandLandmarker:
 
                 # 顯示簡易資訊
                 info_text = "Left hand: DETECTED" if left_hand_lm is not None else "Left hand: NONE"
-                cv2.putText(
-                    frame,
-                    info_text,
-                    (10, 30),
-                    cv2.FONT_HERSHEY_SIMPLEX,
-                    0.8,
-                    (0, 255, 0),
-                    2,
-                )
+                self._draw_info_text(frame, info_text)
 
                 cv2.imshow(WINDOW_NAME, frame)
 
