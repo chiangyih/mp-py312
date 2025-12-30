@@ -18,6 +18,7 @@ import mediapipe as mp
 
 if TYPE_CHECKING:
     from mediapipe.tasks.python.components.containers import Detection
+    from mediapipe.tasks.vision import ObjectDetector as MediaPipeObjectDetector
 
 # ==============================================================================
 # 常數設定
@@ -107,7 +108,7 @@ class ObjectDetector:
         self.config = config or DetectorConfig()
         self._detector = self._create_detector()
 
-    def _create_detector(self) -> mp.tasks.vision.ObjectDetector:
+    def _create_detector(self) -> "MediaPipeObjectDetector":
         """建立 MediaPipe 物件偵測器。"""
         ensure_file_exists(self.config.model_path, self.config.model_url)
 
