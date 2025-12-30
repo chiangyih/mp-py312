@@ -1,4 +1,4 @@
-# MediaPipe Python 3.12 專案
+# MediaPipe Python 
 
 > **最後更新**: 2025年12月30日
 
