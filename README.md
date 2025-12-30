@@ -10,6 +10,7 @@
 mp-py312/
 ├── 01-test.py              # 環境測試程式
 ├── 02-objectDetect.py      # 單張圖片物件偵測 (MediaPipe Tasks)
+├── 03-objectDetect_stream.py # USB 攝影機串流物件偵測 (MediaPipe Tasks + OpenCV)
 └── README.md               # 專案說明文件
 ```
 
@@ -136,6 +137,28 @@ python 02-objectDetect.py
 
 若模型下載失敗或 `image.jpg` 不存在，腳本會拋出錯誤並停止；請確認網路與檔案路徑後重試。
 
+## 🎥 串流物件偵測範例 (USB 攝影機)
+
+- 範例腳本：[03-objectDetect_stream.py](03-objectDetect_stream.py)
+- 功能：使用 USB 攝影機即時偵測物件，於視窗顯示即時影像，並在畫面上標示偵測到的物件名稱（含分數）。
+- 需求：
+	- Shows requires OpenCV（本專案環境已安裝）
+	- 需可正常開啟攝影機（預設攝影機 ID = 0）
+	- 第一次執行會自動下載模型 `efficientdet_lite0.tflite`（需網路）
+
+### 執行步驟
+
+```powershell
+python 03-objectDetect_stream.py
+```
+
+### 操作方式
+
+- 會開啟視窗顯示即時影像與偵測框
+- 按 `q` 鍵離開
+
+若無法開啟攝影機，請在程式內調整 `DEFAULT_CAMERA_ID`（例如改成 1、2）後重試。
+
 ## 📦 套件安裝
 
 如需安裝額外套件：
@@ -176,6 +199,7 @@ pip install psutil
 
 - **2025-12-30**: 初始化專案，建立環境測試程式
 - **2025-12-30**: 新增 02-objectDetect (MediaPipe Tasks) 單張圖片物件偵測範例，並自動下載 EfficientDet Lite0 模型
+- **2025-12-30**: 新增 03-objectDetect_stream (MediaPipe Tasks + OpenCV) USB 攝影機串流物件偵測範例
 
 
 ---
