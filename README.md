@@ -88,66 +88,37 @@ python 01-test.py
 	- 專案根目錄需放置 `image.jpg`
 	- 第一次執行會自動下載模型 `efficientdet_lite0.tflite`（需網路）
 	- 模型來源：MediaPipe 官方提供之 EfficientDet Lite0 物件偵測模型（COCO 2017 資料集，90 類別）
-	- 可偵測類別（COCO 90 類，英／中對照）：
+	- 可偵測類別（COCO 90 類，英／中對照，6 欄）：
 
-| English              | 正體中文             | English                 | 正體中文          |
-|----------------------|----------------------|-------------------------|-------------------|
-| person               | 人物                 | backpack                | 背包              |
-| bicycle              | 腳踏車               | umbrella                | 雨傘              |
-| car                  | 汽車                 | handbag                 | 手提包            |
-| motorcycle           | 機車                 | tie                     | 領帶              |
-| airplane             | 飛機                 | suitcase                | 行李箱            |
-| bus                  | 公車                 | frisbee                 | 飛盤              |
-| train                | 火車                 | skis                    | 滑雪板            |
-| truck                | 卡車                 | snowboard               | 滑雪板（雪板）    |
-| boat                 | 船舶                 | sports ball             | 球類              |
-| traffic light        | 交通號誌             | kite                    | 風箏              |
-| fire hydrant         | 消防栓               | baseball bat            | 棒球棒            |
-| stop sign            | 停止標誌             | baseball glove          | 棒球手套          |
-| parking meter        | 停車計時器           | skateboard              | 滑板              |
-| bench                | 長椅                 | surfboard               | 衝浪板            |
-| bird                 | 鳥                   | tennis racket           | 網球拍            |
-| cat                  | 貓                   | bottle                  | 瓶子              |
-| dog                  | 狗                   | wine glass              | 酒杯              |
-| horse                | 馬                   | cup                     | 杯子              |
-| sheep                | 綿羊                 | fork                    | 叉子              |
-| cow                  | 牛                   | knife                   | 刀                |
-| elephant             | 大象                 | spoon                   | 湯匙              |
-| bear                 | 熊                   | bowl                    | 碗                |
-| zebra                | 斑馬                 | banana                  | 香蕉              |
-| giraffe              | 長頸鹿               | apple                   | 蘋果              |
-| backpack             | 背包                 | sandwich                | 三明治            |
-| umbrella             | 雨傘                 | orange                  | 柳橙              |
-| handbag              | 手提包               | broccoli                | 青花菜            |
-| tie                  | 領帶                 | carrot                  | 紅蘿蔔            |
-| suitcase             | 行李箱               | hot dog                 | 熱狗              |
-| frisbee              | 飛盤                 | pizza                   | 披薩              |
-| skis                 | 滑雪板               | donut                   | 甜甜圈            |
-| snowboard            | 滑雪板（雪板）       | cake                    | 蛋糕              |
-| sports ball          | 球類                 | chair                   | 椅子              |
-| kite                 | 風箏                 | couch                   | 沙發              |
-| baseball bat         | 棒球棒               | potted plant            | 盆栽              |
-| baseball glove       | 棒球手套             | bed                     | 床                |
-| skateboard           | 滑板                 | dining table            | 餐桌              |
-| surfboard            | 衝浪板               | toilet                  | 馬桶              |
-| tennis racket        | 網球拍               | tv                      | 電視              |
-| bottle               | 瓶子                 | laptop                  | 筆電              |
-| wine glass           | 酒杯                 | mouse                   | 滑鼠              |
-| cup                  | 杯子                 | remote                  | 遙控器            |
-| fork                 | 叉子                 | keyboard                | 鍵盤              |
-| knife                | 刀                   | cell phone              | 手機              |
-| spoon                | 湯匙                 | microwave               | 微波爐            |
-| bowl                 | 碗                   | oven                    | 烤箱              |
-| banana               | 香蕉                 | toaster                 | 烤麵包機          |
-| apple                | 蘋果                 | sink                    | 水槽              |
-| sandwich             | 三明治               | refrigerator            | 冰箱              |
-| orange               | 柳橙                 | book                    | 書本              |
-| broccoli             | 青花菜               | clock                   | 時鐘              |
-| carrot               | 紅蘿蔔               | vase                    | 花瓶              |
-| hot dog              | 熱狗                 | scissors                | 剪刀              |
-| pizza                | 披薩                 | teddy bear              | 泰迪熊            |
-| donut                | 甜甜圈               | hair drier              | 吹風機            |
-| cake                 | 蛋糕                 | toothbrush              | 牙刷              |
+| English           | 正體中文   | English            | 正體中文   | English           | 正體中文   |
+|-------------------|------------|--------------------|------------|-------------------|------------|
+| person            | 人物       | bicycle            | 腳踏車     | car               | 汽車       |
+| motorcycle        | 機車       | airplane           | 飛機       | bus               | 公車       |
+| train             | 火車       | truck              | 卡車       | boat              | 船舶       |
+| traffic light     | 交通號誌   | fire hydrant       | 消防栓     | stop sign         | 停止標誌   |
+| parking meter     | 停車計時器 | bench              | 長椅       | bird              | 鳥         |
+| cat               | 貓         | dog                | 狗         | horse             | 馬         |
+| sheep             | 綿羊       | cow                | 牛         | elephant          | 大象       |
+| bear              | 熊         | zebra              | 斑馬       | giraffe           | 長頸鹿     |
+| backpack          | 背包       | umbrella           | 雨傘       | handbag           | 手提包     |
+| tie               | 領帶       | suitcase           | 行李箱     | frisbee           | 飛盤       |
+| skis              | 滑雪板     | snowboard          | 滑雪板（雪板） | sports ball       | 球類       |
+| kite              | 風箏       | baseball bat       | 棒球棒     | baseball glove    | 棒球手套   |
+| skateboard        | 滑板       | surfboard          | 衝浪板     | tennis racket     | 網球拍     |
+| bottle            | 瓶子       | wine glass         | 酒杯       | cup               | 杯子       |
+| fork              | 叉子       | knife              | 刀         | spoon             | 湯匙       |
+| bowl              | 碗         | banana             | 香蕉       | apple             | 蘋果       |
+| sandwich          | 三明治     | orange             | 柳橙       | broccoli          | 青花菜     |
+| carrot            | 紅蘿蔔     | hot dog            | 熱狗       | pizza             | 披薩       |
+| donut             | 甜甜圈     | cake               | 蛋糕       | chair             | 椅子       |
+| couch             | 沙發       | potted plant       | 盆栽       | bed               | 床         |
+| dining table      | 餐桌       | toilet             | 馬桶       | tv                | 電視       |
+| laptop            | 筆電       | mouse              | 滑鼠       | remote            | 遙控器     |
+| keyboard          | 鍵盤       | cell phone         | 手機       | microwave         | 微波爐     |
+| oven              | 烤箱       | toaster            | 烤麵包機   | sink              | 水槽       |
+| refrigerator      | 冰箱       | book               | 書本       | clock             | 時鐘       |
+| vase              | 花瓶       | scissors           | 剪刀       | teddy bear        | 泰迪熊     |
+| hair drier        | 吹風機     | toothbrush         | 牙刷       | -                 | -          |
 
 ### 執行步驟
 
