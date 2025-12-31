@@ -1,5 +1,5 @@
 """ 
-使用 MediaPipe Tasks (HandLandmarker) + OpenCV 計算手指關節點距離（兩點校準版）。
+使用 MediaPipe Tasks (HandLandmarker) + OpenCV 計算手指關節點距離（兩點校準版 + MQTT）。
 
 功能說明：
 - 使用 USB Webcam 擷取即時影像
@@ -11,27 +11,32 @@
   3. 之後的測量都基於這兩個校準點進行線性計算
 - 在畫面上繪製兩點之間的連線
 - 在畫面上顯示距離數值
+- 每 2 秒透過 MQTT 發送距離數值
 
 架構說明：
 - FingerDistanceConfig: 偵測器設定（dataclass），集中管理可調參數
 - CalibrationState: 校準狀態列舉
-- FingerDistanceDetectorCalibrated: 手指距離偵測器類別（含兩點校準）
+- FingerDistanceDetectorCalibrated: 手指距離偵測器類別（含兩點校準 + MQTT）
 
 操作方式：
 - 執行後會開啟視窗顯示即時影像
 - 第一步：將手指併攏（讓關節點 4 和 8 最接近），按 'm' 鍵設定為 0mm
 - 第二步：將手指張開（讓關節點 4 和 8 最遠），按 'M'（Shift+m）鍵設定為 130mm
-- 校準完成後，即可正常測量
+- 校準完成後，即可正常測量並自動發送到 MQTT broker
 - 按下 'r' 可重新校準
 - 按下 'q' 離開
 
 備註：
 - 關節點 4：THUMB_TIP（拇指尖）
 - 關節點 8：INDEX_FINGER_TIP（食指尖）
+- MQTT 發送間隔：每 2 秒發送一次
+- MQTT 發送格式：純數值字串（例如：12.34）
 """
 
 from __future__ import annotations
 
+import json
+import time
 from dataclasses import dataclass
 from enum import Enum, auto
 from pathlib import Path
@@ -41,6 +46,7 @@ from urllib.request import urlretrieve
 import cv2
 import mediapipe as mp
 import numpy as np
+import paho.mqtt.client as mqtt
 
 
 # ==============================================================================
@@ -48,7 +54,7 @@ import numpy as np
 # ==============================================================================
 
 DEFAULT_CAMERA_ID = 0  # 預設 webcam ID
-WINDOW_NAME = "Finger Distance (Calibrated) - 'm'=0mm, 'M'=130mm, 'r'=reset, 'q'=quit"  # 視窗名稱
+WINDOW_NAME = "Finger Distance (Calibrated + MQTT) - 'm'=0mm, 'M'=130mm, 'r'=reset, 'q'=quit"  # 視窗名稱
 DEFAULT_MODEL_PATH = "hand_landmarker.task"  # 手部地標模型檔案路徑
 DEFAULT_MODEL_URL = (
     "https://storage.googleapis.com/mediapipe-models/hand_landmarker/"
@@ -63,6 +69,12 @@ CALIBRATION_MAX_DISTANCE_MM = 130.0  # 最大距離校準值（mm）
 # 目標關節點
 TARGET_LANDMARK_1 = 4  # 拇指尖
 TARGET_LANDMARK_2 = 8  # 食指尖
+
+# MQTT 設定
+MQTT_BROKER = "mqttgo.io"  # MQTT broker 位址
+MQTT_PORT = 1883  # MQTT broker 連接埠
+MQTT_TOPIC = "/tseng/mp_h_landmark_4to8_dist"  # MQTT publish topic
+MQTT_QOS = 0  # MQTT QoS 等級(0: 至多一次, 1: 至少一次, 2: 僅一次)
 
 
 # ==============================================================================
@@ -133,14 +145,21 @@ class FingerDistanceConfig:
     calibration_min_mm: float = CALIBRATION_MIN_DISTANCE_MM  # 最小距離校準值
     calibration_max_mm: float = CALIBRATION_MAX_DISTANCE_MM  # 最大距離校準值
 
+    # MQTT 參數
+    mqtt_broker: str = MQTT_BROKER  # MQTT broker 位址
+    mqtt_port: int = MQTT_PORT  # MQTT broker 連接埠
+    mqtt_topic: str = MQTT_TOPIC  # MQTT publish topic
+    mqtt_qos: int = MQTT_QOS  # MQTT QoS 等級
+    mqtt_enabled: bool = True  # 是否啟用 MQTT 發送
+
 
 # ==============================================================================
-# 手指距離偵測器類別（含兩點校準）
+# 手指距離偵測器類別（含兩點校準 + MQTT）
 # ==============================================================================
 
 
 class FingerDistanceDetectorCalibrated:
-    """封裝 MediaPipe Tasks HandLandmarker 手指距離計算（含兩點校準），便於重複使用與後續擴充。"""
+    """封裝 MediaPipe Tasks HandLandmarker 手指距離計算（含兩點校準 + MQTT），便於重複使用與後續擴充。"""
 
     def __init__(self, config: FingerDistanceConfig | None = None) -> None:
         self.config = config or FingerDistanceConfig()
@@ -151,6 +170,17 @@ class FingerDistanceDetectorCalibrated:
         self._calibration_state = CalibrationState.WAIT_MIN
         self._min_distance_px: float | None = None  # 最小距離的像素值（對應 0mm）
         self._max_distance_px: float | None = None  # 最大距離的像素值（對應 130mm）
+        
+        # MQTT 發送計時器
+        self._last_mqtt_send_time = 0.0  # 上次發送時間戳記
+        self._mqtt_send_interval = 0.5  # 每 0.5 秒發送一次
+        
+        # MQTT 客戶端
+        self._mqtt_client: mqtt.Client | None = None
+        self._mqtt_connected = False
+        if self.config.mqtt_enabled:
+            self._setup_mqtt()
+
     def _create_landmarker(self) -> Any:
         """建立 MediaPipe HandLandmarker（VIDEO 模式）。"""
         ensure_file_exists(self.config.model_path, self.config.model_url)
@@ -167,6 +197,69 @@ class FingerDistanceDetectorCalibrated:
             running_mode=mp.tasks.vision.RunningMode.VIDEO,
         )
         return mp.tasks.vision.HandLandmarker.create_from_options(options)
+
+    def _setup_mqtt(self) -> None:
+        """設定 MQTT 連線。"""
+        try:
+            # 建立 MQTT 客戶端
+            self._mqtt_client = mqtt.Client(client_id="", protocol=mqtt.MQTTv311)
+            
+            # 設定連線回調函式
+            def on_connect(client, userdata, flags, rc):
+                if rc == 0:
+                    self._mqtt_connected = True
+                    print(f"MQTT 已連線到 {self.config.mqtt_broker}")
+                else:
+                    print(f"MQTT 連線失敗,錯誤碼: {rc}")
+            
+            def on_disconnect(client, userdata, rc):
+                self._mqtt_connected = False
+                print(f"MQTT 已斷線,錯誤碼: {rc}")
+            
+            self._mqtt_client.on_connect = on_connect
+            self._mqtt_client.on_disconnect = on_disconnect
+            
+            # 連線到 MQTT broker
+            print(f"正在連線到 MQTT broker: {self.config.mqtt_broker}:{self.config.mqtt_port}")
+            self._mqtt_client.connect(self.config.mqtt_broker, self.config.mqtt_port, 60)
+            self._mqtt_client.loop_start()  # 啟動背景執行緒處理網路事件
+            
+        except Exception as e:
+            print(f"MQTT 設定失敗: {e}")
+            self._mqtt_client = None
+
+    def _publish_distance(self, distance_mm: float) -> None:
+        """將距離值發送到 MQTT broker（每 2 秒發送一次）。"""
+        if not self.config.mqtt_enabled or not self._mqtt_client or not self._mqtt_connected:
+            return
+        
+        # 檢查是否已到達發送間隔
+        current_time = time.time()
+        if current_time - self._last_mqtt_send_time < self._mqtt_send_interval:
+            return
+        
+        try:
+            # 只發送距離數值
+            payload = str(round(distance_mm, 2))
+            
+            # 發送訊息
+            result = self._mqtt_client.publish(
+                self.config.mqtt_topic,
+                payload,
+                qos=self.config.mqtt_qos
+            )
+            
+            # 更新上次發送時間
+            self._last_mqtt_send_time = current_time
+            
+            # 檢查發送結果(非阻塞)
+            if result.rc != mqtt.MQTT_ERR_SUCCESS:
+                print(f"MQTT 發送失敗: {result.rc}")
+            else:
+                print(f"MQTT 已發送: {distance_mm:.2f} mm")
+                
+        except Exception as e:
+            print(f"MQTT 發送錯誤: {e}")
 
     def _open_camera(self) -> cv2.VideoCapture:
         """開啟攝影機。"""
@@ -406,6 +499,8 @@ class FingerDistanceDetectorCalibrated:
         distance_mm = 0.0
         if self._calibration_state == CalibrationState.CALIBRATED:
             distance_mm = self._calculate_calibrated_distance(distance_px)
+            # 發送到 MQTT
+            self._publish_distance(distance_mm)
 
         # 顯示距離數值
         self._draw_distance_text(frame, distance_mm, distance_px)
@@ -413,7 +508,7 @@ class FingerDistanceDetectorCalibrated:
         return distance_px
 
     def run(self) -> None:
-        """執行即時手指距離偵測（含兩點校準），顯示於視窗。"""
+        """執行即時手指距離偵測（含兩點校準 + MQTT），顯示於視窗。"""
         self._cap = self._open_camera()
         frame_count = 0
 
@@ -422,7 +517,7 @@ class FingerDistanceDetectorCalibrated:
         print("\n校準步驟：")
         print("1. 將手指併攏（讓關節點 4 和 8 最接近），按 'm' 鍵設定為 0mm")
         print("2. 將手指張開（讓關節點 4 和 8 最遠），按 'M'（Shift+m）鍵設定為 130mm")
-        print("3. 校準完成後，即可正常測量")
+        print("3. 校準完成後，即可正常測量並自動發送到 MQTT broker")
         print("\n按鍵說明：")
         print("- 'm' : 設定最小距離（0mm）")
         print("- 'M' : 設定最大距離（130mm）")
@@ -480,6 +575,12 @@ class FingerDistanceDetectorCalibrated:
                     self._reset_calibration()
 
         finally:
+            # 關閉 MQTT 連線
+            if self._mqtt_client:
+                self._mqtt_client.loop_stop()
+                self._mqtt_client.disconnect()
+                print("MQTT 已斷線")
+            
             if self._cap:
                 self._cap.release()
             cv2.destroyAllWindows()
