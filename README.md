@@ -1,6 +1,6 @@
 # MediaPipe 使用Python開發 
 
-> **最後更新**: 2025年12月30日
+> **最後更新**: 2025年12月31日
 
 這是一個基於 Python 3.12 的 MediaPipe 開發環境專案。
 
@@ -8,10 +8,11 @@
 
 ```
 mp-py312/
-├── 01-test.py              # 環境測試程式
-├── 02-objectDetect.py      # 單張圖片物件偵測 (MediaPipe Tasks)
-├── 03-objectDetect_stream.py # USB 攝影機串流物件偵測 (MediaPipe Tasks + OpenCV)
-└── README.md               # 專案說明文件
+├── 01-test.py                 # 環境測試程式
+├── 02-objectDetect.py         # 單張圖片物件偵測 (MediaPipe Tasks)
+├── 03-objectDetect_stream.py  # USB 攝影機串流物件偵測 (MediaPipe Tasks + OpenCV)
+├── 04-hand_landmark.py        # USB 攝影機手部地標偵測 (左手, MediaPipe HandLandmarker)
+└── README.md                  # 專案說明文件
 ```
 
 ## 🛠️ 環境資訊
@@ -159,6 +160,42 @@ python 03-objectDetect_stream.py
 
 若無法開啟攝影機，請在程式內調整 `DEFAULT_CAMERA_ID`（例如改成 1、2）後重試。
 
+## ✋ 手部地標偵測範例 (USB 攝影機)
+
+- 範例腳本：[04-hand_landmark.py](04-hand_landmark.py)
+- 功能：使用 USB 攝影機即時偵測左手地標（21 個關鍵點：0~20），於視窗顯示即時影像，並在每個地標點旁標示編號。
+- 需求：
+  - 需可正常開啟攝影機（預設攝影機 ID = 0）
+  - 第一次執行會自動下載模型 `hand_landmarker.task`（需網路）
+  - 模型來源：MediaPipe 官方提供之 HandLandmarker 模型（float16 版本）
+
+### 手部地標點說明
+
+MediaPipe Hands 共偵測 21 個地標點（編號 0~20）：
+
+- **0**: WRIST（手腕）
+- **1-4**: THUMB（拇指）：CMC, MCP, IP, TIP (cmc為掌指關節基底, mcp為掌指關節, ip為指間關節, tip為指尖)
+- **5-8**: INDEX_FINGER（食指）：MCP, PIP, DIP, TIP
+- **9-12**: MIDDLE_FINGER（中指）：MCP, PIP, DIP, TIP
+- **13-16**: RING_FINGER（無名指）：MCP, PIP, DIP, TIP
+- **17-20**: PINKY（小指）：MCP, PIP, DIP, TIP
+
+### 執行步驟
+
+```powershell
+python 04-hand_landmark.py
+```
+
+### 操作方式
+
+- 會開啟視窗顯示即時影像與左手地標點（紅色圓點 + 編號）
+- 按 `q` 鍵離開
+
+### 備註
+
+- 本範例僅顯示「左手」的地標點（right 判斷），若需偵測右手或雙手，可修改程式內的篩選邏輯。
+- 若無法開啟攝影機，請調整 `DEFAULT_CAMERA_ID`（例如改成 1、2）後重試。
+
 ## 📦 套件安裝
 
 如需安裝額外套件：
@@ -167,10 +204,15 @@ python 03-objectDetect_stream.py
 # 安裝 MediaPipe
 pip install mediapipe
 
-# 安裝 OpenCV
+# 安裝 OpenCV（基礎版本）
 pip install opencv-python
 
-# 安裝 PyTorch（CUDA 版本）
+# 安裝 OpenCV（完整版本，包含額外貢獻模組）
+pip install opencv-contrib-python
+
+# 安裝 PyTorch（請參照官方安裝指南選擇適合版本）
+# 官方安裝指南：https://pytorch.org/get-started/locally/
+# 範例（OS:windows package:pip language:python computePlatform:CUDA 13.0 版本）：
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu130
 
 # 安裝系統資訊工具（可選）
@@ -200,6 +242,7 @@ pip install psutil
 - **2025-12-30**: 初始化專案，建立環境測試程式
 - **2025-12-30**: 新增 02-objectDetect (MediaPipe Tasks) 單張圖片物件偵測範例，並自動下載 EfficientDet Lite0 模型
 - **2025-12-30**: 新增 03-objectDetect_stream (MediaPipe Tasks + OpenCV) USB 攝影機串流物件偵測範例
+- **2025-12-31**: 新增 04-hand_landmark (MediaPipe HandLandmarker) USB 攝影機左手地標偵測範例（21 點）
 
 
 ---
