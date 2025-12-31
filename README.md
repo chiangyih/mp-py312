@@ -17,7 +17,7 @@
 
 ## 📁 專案結構
 
-
+```
 mp-py312/
 ├── 01-test.py                 # 環境檢測：Python/MediaPipe/OpenCV/GPU/CUDA
 ├── 02-objectDetect.py         # 物件偵測（單張圖片，MediaPipe Tasks）
