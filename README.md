@@ -161,6 +161,7 @@ python 03-objectDetect_stream.py
 若無法開啟攝影機，請在程式內調整 `DEFAULT_CAMERA_ID`（例如改成 1、2）後重試。
 
 ## ✋ 手部地標偵測範例 (USB 攝影機)
+<img width="908" height="548" alt="image" src="https://github.com/user-attachments/assets/083c3b52-ff25-4986-89f7-c1cbb05341c8" />
 
 - 範例腳本：[04-hand_landmark.py](04-hand_landmark.py)
 - 功能：使用 USB 攝影機即時偵測左手地標（21 個關鍵點：0~20），於視窗顯示即時影像，並在每個地標點旁標示編號。
