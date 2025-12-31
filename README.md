@@ -15,6 +15,42 @@
 - **PyTorch**: 2.9.1+cu130（CUDA 13.0 / cuDNN 91200）
 - **GPU**: NVIDIA GeForce RTX 3060（12GB）
 
+## 🛠️ 開發環境設置
+
+### 1) 建立並啟用 Conda 環境
+
+```powershell
+# 建立環境（Python 3.12）
+conda create -n mp-py312 python=3.12 -y
+
+# 啟用環境
+conda activate mp-py312
+
+# 更新 pip
+python -m pip install --upgrade pip
+```
+
+### 2) 安裝相依套件
+
+```powershell
+# 安裝 MediaPipe
+pip install mediapipe
+
+# 安裝 OpenCV（基礎版本）
+pip install opencv-python
+
+# 安裝 OpenCV（完整版本，包含額外貢獻模組）
+pip install opencv-contrib-python
+
+# 安裝 PyTorch（請參照官方安裝指南選擇適合版本）
+# 官方安裝指南：https://pytorch.org/get-started/locally/
+# 範例（OS:windows package:pip language:python computePlatform:CUDA 13.0 版本）：
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu130
+
+# 安裝系統資訊工具（可選）
+pip install psutil
+```
+
 ## 📁 專案結構
 
 ```
@@ -140,30 +176,6 @@ python 04-hand_landmark.py
 - **17-20**：PINKY（小指）：MCP / PIP / DIP / TIP
 
 備註：本範例僅顯示「左手」地標；若需偵測右手或雙手，可修改程式內的篩選邏輯。
-
-## 📦 套件安裝
-
-如需安裝額外套件：
-
-```powershell
-# 安裝 MediaPipe
-pip install mediapipe
-
-# 安裝 OpenCV（基礎版本）
-pip install opencv-python
-
-# 安裝 OpenCV（完整版本，包含額外貢獻模組）
-pip install opencv-contrib-python
-
-# 安裝 PyTorch（請參照官方安裝指南選擇適合版本）
-# 官方安裝指南：https://pytorch.org/get-started/locally/
-# 範例（OS:windows package:pip language:python computePlatform:CUDA 13.0 版本）：
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu130
-
-# 安裝系統資訊工具（可選）
-pip install psutil
-```
-
 
 ## 📝 版本歷史
 
