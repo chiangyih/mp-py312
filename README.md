@@ -2,7 +2,7 @@
 
 > **最後更新**: 2025年12月31日
 
-這是一個以「教學／自學」為導向的 MediaPipe Python 範例集合，使用 **MediaPipe Tasks + OpenCV** 完成：
+ MediaPipe Python 範例集合，使用 **MediaPipe Tasks + OpenCV** 完成：
 
 - 環境檢測（版本、GPU/CUDA 等）
 - 物件偵測（單張圖片、USB 攝影機串流）
@@ -143,7 +143,7 @@ python 02-objectDetect.py
 ```
 
 <details>
-<summary>可偵測類別（COCO 90 類，英／中對照，點此展開）</summary>
+<summary><font color="red">可偵測類別（COCO 90 類，英／中對照，點此展開）</font></summary>
 
 | English           | 正體中文   | English            | 正體中文   | English           | 正體中文   |
 |-------------------|------------|--------------------|------------|-------------------|------------|
