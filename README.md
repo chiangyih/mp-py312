@@ -2,11 +2,22 @@
 
 > **最後更新**: 2025年12月31日
 
-本專案整理了使用 MediaPipe Tasks 搭配 OpenCV 的多個範例腳本，涵蓋環境檢測、物件偵測（單張與串流）、手部地標偵測（串流）。
+使用 MediaPipe Tasks 搭配 OpenCV 的多個範例腳本，涵蓋環境檢測、物件偵測（單張與串流）、手部地標偵測（串流）。
+
+## 🧰 開發環境版本
+
+以下摘要為執行 [01-test.py](01-test.py) 取得（更新：2025年12月30日）：
+
+- **作業系統**: Windows 11 (10.0.26100)
+- **Python**: 3.12.12（Anaconda）
+- **MediaPipe**: 0.10.31
+- **OpenCV**: 4.12.0（CUDA：未啟用）
+- **PyTorch**: 2.9.1+cu130（CUDA 13.0 / cuDNN 91200）
+- **GPU**: NVIDIA GeForce RTX 3060（12GB）
 
 ## 📁 專案結構
 
-```
+
 mp-py312/
 ├── 01-test.py                 # 環境檢測：Python/MediaPipe/OpenCV/GPU/CUDA
 ├── 02-objectDetect.py         # 物件偵測（單張圖片，MediaPipe Tasks）
@@ -153,23 +164,6 @@ pip install torch torchvision torchaudio --index-url https://download.pytorch.or
 pip install psutil
 ```
 
-## 💡 使用說明
-
-本專案主要用於 MediaPipe 的開發與測試。MediaPipe 是 Google 開發的跨平台機器學習框架，支援多種視覺與音訊處理任務。
-
-### 主要功能
-- ✅ 人臉偵測
-- ✅ 姿態估計
-- ✅ 手部追蹤
-- ✅ 物件偵測
-- ✅ 影像分割
-
-## 🔧 環境需求
-
-- Python 3.12+
-- Windows 11
-- NVIDIA GPU（可選，用於 PyTorch 加速）
-- CUDA 13.0+（可選）
 
 ## 📝 版本歷史
 
