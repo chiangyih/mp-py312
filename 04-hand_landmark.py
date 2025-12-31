@@ -18,12 +18,12 @@
 - MediaPipe Hands 的 21 個地標點：0 是手腕（wrist），1~20 為手指關節點（共 20 個）
 """
 
-from __future__ import annotations
+from __future__ import annotations # 允許類別內部使用類別本身作為型別註解
 
-from dataclasses import dataclass
-from pathlib import Path
-from typing import Any
-from urllib.request import urlretrieve
+from dataclasses import dataclass # 提供簡易的資料類別定義
+from pathlib import Path # 用於處理檔案路徑
+from typing import Any # 用於型別註解, Any 表示任意型別,typing 模組提供多種型別註解工具
+from urllib.request import urlretrieve # 用於從 URL 下載檔案
 
 import cv2
 import mediapipe as mp
@@ -34,9 +34,9 @@ import numpy as np
 # 常數設定
 # ==============================================================================
 
-DEFAULT_CAMERA_ID = 0
-WINDOW_NAME = "MediaPipe 左手地標 (按 'q' 離開)"
-DEFAULT_MODEL_PATH = "hand_landmarker.task"
+DEFAULT_CAMERA_ID = 0 # 預設webcam ID
+WINDOW_NAME = "MediaPipe Left_Hand_landmarker (press 'q' Exit)" # 視窗名稱
+DEFAULT_MODEL_PATH = "hand_landmarker.task" # 手部地標模型檔案路徑
 DEFAULT_MODEL_URL = (
     "https://storage.googleapis.com/mediapipe-models/hand_landmarker/"
     "hand_landmarker/float16/1/hand_landmarker.task"
@@ -60,7 +60,7 @@ def ensure_file_exists(path: str | Path, download_url: str | None = None) -> Pat
 
     print(f"正在下載模型至 {file_path} ...")
     file_path.parent.mkdir(parents=True, exist_ok=True)
-    urlretrieve(download_url, file_path)
+    urlretrieve(download_url, file_path) # 從指定網址下載檔案,urlretrieve 函式會將檔案下載到指定路徑
     print("模型下載完成")
     return file_path
 
@@ -74,24 +74,24 @@ def ensure_file_exists(path: str | Path, download_url: str | None = None) -> Pat
 class HandLandmarkConfig:
     """手部地標偵測設定，集中管理可調參數。"""
 
-    camera_id: int = DEFAULT_CAMERA_ID
-    model_path: str = DEFAULT_MODEL_PATH
+    camera_id: int = DEFAULT_CAMERA_ID # 預設攝影機 ID
+    model_path: str = DEFAULT_MODEL_PATH 
     model_url: str = DEFAULT_MODEL_URL
     target_fps: int = DEFAULT_FPS  # 供 timestamp 計算
 
     # MediaPipe HandLandmarker 參數
-    num_hands: int = 2
-    min_hand_detection_confidence: float = 0.5
-    min_hand_presence_confidence: float = 0.5
-    min_tracking_confidence: float = 0.5
+    num_hands: int = 2 # 偵測手數上限
+    min_hand_detection_confidence: float = 0.5 # 最小手部偵測信心值 , 用於初始手部偵測, 較高值可提升準確度
+    min_hand_presence_confidence: float = 0.5 # 最小手部存在信心值, 用於手部偵測後續步驟, 較高值可提升準確度
+    min_tracking_confidence: float = 0.5 # 最小追蹤信心值, 用於手部追蹤, 較高值可提升穩定性
 
-    # 視覺化參數
-    draw_wrist: bool = True  # True：顯示 0 (wrist)；False：只顯示 1~20（20 個關節點）
-    point_radius: int = 5
-    point_color_bgr: tuple[int, int, int] = (0, 255, 0)  # 綠色
+    # 關節數字視覺化參數
+    draw_wrist: bool = True  # 是否繪製手腕（編號 0）, True 表示繪製，False 表示只繪製 1~20（20 個關節點）
+    point_radius: int = 4 # 關節圓點半徑
+    point_color_bgr: tuple[int, int, int] = (0, 255, 0)  # 關節點顏色 (BGR 格式)
     point_thickness: int = -1  # -1 表示填滿
-    text_scale: float = 0.6
-    text_thickness: int = 2
+    text_scale: float = 0.4 # 文字縮放比例
+    text_thickness: int = 1 # 字體粗細
 
 
 # ==============================================================================
@@ -102,27 +102,27 @@ class HandLandmarkConfig:
 class StreamHandLandmarker:
     """封裝 MediaPipe Tasks HandLandmarker 串流偵測（左手），便於重複使用與後續擴充。"""
 
-    def __init__(self, config: HandLandmarkConfig | None = None) -> None:
-        self.config = config or HandLandmarkConfig()
-        self._cap: cv2.VideoCapture | None = None
-        self._landmarker = self._create_landmarker()
+    def __init__(self, config: HandLandmarkConfig | None = None) -> None: # 初始化偵測器, 可傳入自訂設定, 否則使用預設設定
+        self.config = config or HandLandmarkConfig() # 使用預設設定, 若無提供自訂設定
+        self._cap: cv2.VideoCapture | None = None # 攝影機物件, 初始為 None, 待開啟攝影機後賦值, 方便後續釋放資源
+        self._landmarker = self._create_landmarker() # 建立 MediaPipe HandLandmarker 物件 ,供後續偵測使用, 透過私有方法建立, 封裝細節, 提升可讀性
 
-    def _create_landmarker(self) -> Any:
+    def _create_landmarker(self) -> Any: # 建立 MediaPipe HandLandmarker 物件 , 供後續偵測使用
         """建立 MediaPipe HandLandmarker（VIDEO 模式）。"""
-        ensure_file_exists(self.config.model_path, self.config.model_url)
+        ensure_file_exists(self.config.model_path, self.config.model_url) # 確保模型檔案存在, 若不存在則下載
 
         base_options = mp.tasks.BaseOptions(
-            model_asset_path=str(self.config.model_path)
+            model_asset_path=str(self.config.model_path) # 模型檔案路徑
         )
         options = mp.tasks.vision.HandLandmarkerOptions(
-            base_options=base_options,
-            num_hands=self.config.num_hands,
-            min_hand_detection_confidence=self.config.min_hand_detection_confidence,
-            min_hand_presence_confidence=self.config.min_hand_presence_confidence,
-            min_tracking_confidence=self.config.min_tracking_confidence,
-            running_mode=mp.tasks.vision.RunningMode.VIDEO,
-        )
-        return mp.tasks.vision.HandLandmarker.create_from_options(options)
+            base_options=base_options, # 設定基本選項, 包含模型路徑
+            num_hands=self.config.num_hands, # 偵測手數上限
+            min_hand_detection_confidence=self.config.min_hand_detection_confidence, # 最小手部偵測信心值
+            min_hand_presence_confidence=self.config.min_hand_presence_confidence, # 最小手部存在信心值
+            min_tracking_confidence=self.config.min_tracking_confidence, # 最小追蹤信心值
+            running_mode=mp.tasks.vision.RunningMode.VIDEO, # 設定為 VIDEO 模式, 因為是串流影像, 需要時間戳記, 以提升追蹤效果
+        ) # 設定 HandLandmarker 參數
+        return mp.tasks.vision.HandLandmarker.create_from_options(options) # 建立 HandLandmarker 物件並回傳, 供後續偵測使用
 
     def _open_camera(self) -> cv2.VideoCapture:
         """開啟攝影機。"""
@@ -131,29 +131,34 @@ class StreamHandLandmarker:
             raise RuntimeError(f"無法開啟攝影機（ID: {self.config.camera_id}）")
         return cap
 
-    @staticmethod
-    def _is_left_hand(category: Any) -> bool:
+    @staticmethod # 判斷是否為左手, 使用 MediaPipe 的 handedness 分類結果, 回傳布林值, True 表示左手, False 表示非左手,回傳到呼叫處理
+    # 這個@staticmethod 裝飾器表示此方法不依賴於類別實例的狀態, 可直接透過類別名稱呼叫
+    def _is_left_hand(category: Any) -> bool: 
         """判斷此手是否為左手（以 MediaPipe 的 handedness 分類為準）。"""
         try:
-            label = getattr(category, "category_name", "")
+            label = getattr(category, "category_name", "") 
             # 大小寫不敏感比對，避免未來版本差異
-            return label.lower() == "left"
+            return label.lower() == "left" # 回傳是否為左手, True 表示左手, False 表示非左手
         except Exception:
             return False
 
-    def _select_left_hand_landmarks(self, result: Any) -> Any | None:
+    def _select_left_hand_landmarks(self, result: Any) -> Any | None: # Any 為 MediaPipe HandLandmarker 的推論結果類型
         """從推論結果中挑出左手的 landmarks（若不存在則回傳 None）。"""
         if not result or not result.hand_landmarks or not result.handedness:
             return None
 
         # handedness[i] 對應 hand_landmarks[i]
-        for i, lm_list in enumerate(result.hand_landmarks):
-            if i < len(result.handedness):
+        for i, lm_list in enumerate(result.hand_landmarks): 
+            # 遍歷所有偵測到的手部地標, 透過 enumerate 同時取得索引與地標列表, lm_list 為第 i 隻手的地標列表
+            if i < len(result.handedness): # 確保索引不超出範圍, 範圍為 handedness 清單長度,handedness 清單包含每隻手的分類結果
                 # handedness[i] 是 Classification 列表，取第一個
                 if result.handedness[i] and self._is_left_hand(result.handedness[i][0]):
-                    return lm_list
+                    # 判斷是否為左手, 使用私有方法 _is_left_hand, 傳入 handedness[i][0] 作為分類結果, 回傳布林值
+                    # handedness[i][0] 為第一個分類結果, 因為 MediaPipe 可能會回傳多個分類結果, 但通常只取第一個
+                    # handedness[i][0] 的型別為 Classification,內容為 category_name("Left" 或 "Right") 與 score (信心值)
+                    return lm_list # 回傳左手的地標列表
 
-        return None
+        return None # 若無左手則回傳 None
 
     def _draw_landmark_index(
         self,
@@ -168,13 +173,13 @@ class StreamHandLandmarker:
         cv2.circle(
             frame,
             (x, y),
-            self.config.point_radius,
+            self.config.point_radius, # 點半徑
             self.config.point_color_bgr,
             self.config.point_thickness,
         )
 
         # 2) 繪製編號（綠色文字，無背景）
-        text = str(index)
+        text = str(index) # index為地標編號,由呼叫處傳入
 
         # 文字位置（稍微偏移，避免蓋到點）
         tx = x + self.config.point_radius + 2
@@ -190,7 +195,7 @@ class StreamHandLandmarker:
             self.config.text_thickness,
         )
 
-    @staticmethod
+    @staticmethod # 在影像左上角顯示提示文字(這裡的@staticmethod 裝飾器表示此方法不依賴於類別實例的狀態, 可直接透過類別名稱呼叫)
     def _draw_info_text(frame: np.ndarray, text: str) -> None:
         """在左上角顯示提示文字。"""
         cv2.putText(
@@ -223,10 +228,13 @@ class StreamHandLandmarker:
 
             self._draw_landmark_index(frame, x, y, idx)
 
-    def run(self) -> None:
+    def run(self) -> None: 
+        # run 方法為主程式入口, 執行即時左手地標偵測並顯示於視窗
+        # self參數代表類別實例本身, 可透過 self 訪問類別屬性與方法, 包含的配置參數總共有 camera_id, model_path, model_url, target_fps 等等
+        # -> None: 表示此方法無回傳值
         """執行即時左手地標偵測，顯示於視窗。"""
-        self._cap = self._open_camera()
-        frame_count = 0
+        self._cap = self._open_camera() # 開啟攝影機, 並賦值給類別屬性 _cap, 方便後續釋放資源
+        frame_count = 0 # 記錄影格數, 用於計算 timestamp
 
         print(f"攝影機已開啟（ID: {self.config.camera_id}）")
         print("僅顯示左手地標（官方編號 0~20）")
@@ -278,9 +286,9 @@ class StreamHandLandmarker:
 
 def main() -> None:
     """主程式入口。"""
-    config = HandLandmarkConfig()
-    landmarker = StreamHandLandmarker(config)
-    landmarker.run()
+    config = HandLandmarkConfig() # 使用預設設定, HandLandmarkConfig 為前面建立的資料類別, 可集中管理可調參數
+    landmarker = StreamHandLandmarker(config) # 建立串流手部地標偵測器
+    landmarker.run() # 執行即時左手地標偵測
 
 
 if __name__ == "__main__":
