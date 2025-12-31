@@ -108,6 +108,9 @@ mp-py312/
 ├── 02-objectDetect.py         # 物件偵測（單張圖片，MediaPipe Tasks）
 ├── 03-objectDetect_stream.py  # 物件偵測（USB 攝影機串流，MediaPipe Tasks + OpenCV）
 ├── 04-hand_landmark.py        # 手部地標（USB 攝影機串流，左手，HandLandmarker + OpenCV）
+├── 05-finger_distance.py      # 手指距離計算（單點校準版，拇指尖與食指尖）
+├── 06-finger_distance-1.py    # 手指距離計算（兩點校準版，離線顯示）
+├── 07-finger_distance_mqtt.py # 手指距離計算（兩點校準版，MQTT 每 0.5 秒發送距離）
 ├── efficientdet_lite0.tflite  # 物件偵測模型（可能由程式第一次執行時下載）
 ├── hand_landmarker.task       # 手部地標模型（可能由程式第一次執行時下載）
 └── README.md                  # 專案說明文件
@@ -233,6 +236,45 @@ python 04-hand_landmark.py
 
 備註：本範例僅顯示「左手」地標；若需偵測右手或雙手，可修改程式內的篩選邏輯。
 
+### 05｜手指距離（單點校準版）
+
+- 腳本：[05-finger_distance.py](05-finger_distance.py)
+- 用途：量測拇指尖（4）與食指尖（8）距離，使用單點校準（設定最小距離為 0mm）。
+- 執行：
+
+```powershell
+python 05-finger_distance.py
+```
+
+### 06｜手指距離（兩點校準版，離線）
+
+- 腳本：[06-finger_distance-1.py](06-finger_distance-1.py)
+- 用途：兩點校準（0mm / 130mm），量測拇指尖（4）與食指尖（8）距離並在畫面顯示，不做網路傳輸。
+- 操作：按 `m` 設 0mm，按 `M` 設 130mm，`r` 重設，`q` 離開。
+- 執行：
+
+```powershell
+python 06-finger_distance-1.py
+```
+
+### 07｜手指距離（兩點校準版，MQTT 發送，每 0.5 秒）
+
+- 腳本：[07-finger_distance_mqtt.py](07-finger_distance_mqtt.py)
+- 用途：同 06 的兩點校準流程，且每 0.5 秒透過 MQTT 發送距離數值（純數字字串）。
+- 需求：需先安裝 MQTT 函式庫
+
+```powershell
+pip install paho-mqtt
+```
+
+- 執行：
+
+```powershell
+python 07-finger_distance_mqtt.py
+```
+
+- 操作：按 `m` 設 0mm，按 `M` 設 130mm，`r` 重設，`q` 離開。
+
 ## ❓ 常見問題（疑難排解）
 
 - 物件偵測單張圖片找不到 `image.jpg`
@@ -262,3 +304,6 @@ python 04-hand_landmark.py
 - **2025-12-30**: 新增 02-objectDetect (MediaPipe Tasks) 單張圖片物件偵測範例，並自動下載 EfficientDet Lite0 模型
 - **2025-12-30**: 新增 03-objectDetect_stream (MediaPipe Tasks + OpenCV) USB 攝影機串流物件偵測範例
 - **2025-12-31**: 新增 04-hand_landmark (MediaPipe HandLandmarker) USB 攝影機左手地標偵測範例（21 點）
+- **2025-12-31**: 新增 05-finger_distance 單點校準手指距離量測
+- **2025-12-31**: 新增 06-finger_distance-1 兩點校準手指距離量測（離線顯示）
+- **2025-12-31**: 新增 07-finger_distance_mqtt 兩點校準手指距離量測（MQTT 每 2 秒發送距離）
