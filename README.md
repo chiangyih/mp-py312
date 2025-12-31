@@ -1,96 +1,48 @@
-# MediaPipe 使用Python開發 
+# MediaPipe 使用 Python 開發
 
 > **最後更新**: 2025年12月31日
 
-這是一個基於 Python 3.12 的 MediaPipe 開發環境專案。
+本專案整理了使用 MediaPipe Tasks 搭配 OpenCV 的多個範例腳本，涵蓋環境檢測、物件偵測（單張與串流）、手部地標偵測（串流）。
 
 ## 📁 專案結構
 
 ```
 mp-py312/
-├── 01-test.py                 # 環境測試程式
-├── 02-objectDetect.py         # 單張圖片物件偵測 (MediaPipe Tasks)
-├── 03-objectDetect_stream.py  # USB 攝影機串流物件偵測 (MediaPipe Tasks + OpenCV)
-├── 04-hand_landmark.py        # USB 攝影機手部地標偵測 (左手, MediaPipe HandLandmarker)
+├── 01-test.py                 # 環境檢測：Python/MediaPipe/OpenCV/GPU/CUDA
+├── 02-objectDetect.py         # 物件偵測（單張圖片，MediaPipe Tasks）
+├── 03-objectDetect_stream.py  # 物件偵測（USB 攝影機串流，MediaPipe Tasks + OpenCV）
+├── 04-hand_landmark.py        # 手部地標（USB 攝影機串流，左手，HandLandmarker + OpenCV）
 └── README.md                  # 專案說明文件
 ```
 
-## 🛠️ 環境資訊
+## 🧩 子程式分類與使用方式
 
-以下是本專案的完整環境配置資訊（最後更新：2025年12月30日）：
+### 01｜環境檢測
 
-### Python 環境
-
-- **Python 版本**: 3.12.12
-- **Python 編譯器**: MSC v.1929 64 bit (AMD64)
-- **Python 發行版**: Anaconda, Inc.
-- **作業系統**: Windows 11 (10.0.26100)
-- **系統架構**: AMD64
-- **處理器**: Intel64 Family 6 Model 94 Stepping 3, GenuineIntel
-
-### 已安裝套件
-
-#### MediaPipe
-- **版本**: 0.10.31
-- **安裝路徑**: `C:\Users\tseng\miniconda3\envs\mp-py312\Lib\site-packages\mediapipe\`
-
-#### OpenCV
-- **版本**: 4.12.0
-- **安裝路徑**: `C:\Users\tseng\miniconda3\envs\mp-py312\Lib\site-packages\cv2\`
-- **CUDA 支援**: ❌ 未啟用
-
-#### PyTorch
-- **版本**: 2.9.1+cu130
-- **CUDA 版本**: 13.0
-- **cuDNN 版本**: 91200
-- **CUDA 可用**: ✅ 是
-
-### 🎮 GPU 資訊
-
-本環境支援 GPU 加速運算：
-
-- **GPU 裝置數量**: 1
-- **GPU 型號**: NVIDIA GeForce RTX 3060
-- **顯示記憶體**: 12.00 GB
-- **CUDA 核心數**: 28 個多處理器
-- **計算能力**: 8.6
-
-### ⚠️ 注意事項
-
-- OpenCV 目前使用 CPU 版本，未啟用 CUDA 支援
-- TensorFlow 未安裝
-- psutil 未安裝（無法顯示詳細系統記憶體資訊）
-
-## 🚀 快速開始
-
-### 啟用 Conda 環境
-
-```powershell
-conda activate mp-py312
-```
-
-### 執行環境測試
+- 腳本：[01-test.py](01-test.py)
+- 用途：輸出 Python / MediaPipe / OpenCV 版本，並檢查 GPU、CUDA、cuDNN 等資訊（若有安裝相應套件）。
+- 執行：
 
 ```powershell
 python 01-test.py
 ```
 
-此程式會自動檢測並顯示：
-- Python 版本資訊
-- MediaPipe 版本
-- OpenCV 版本與 CUDA 支援
-- GPU 與 CUDA 資訊（PyTorch、TensorFlow）
-- 系統資訊
+### 02｜物件偵測（單張圖片）
 
-## 🎯 物件偵測範例 (MediaPipe Tasks)
-
-- 範例腳本：[02-objectDetect.py](02-objectDetect.py)
-- 功能：讀取 `image.jpg`，使用 MediaPipe Tasks 物件偵測模型（EfficientDet Lite0），於終端輸出偵測框、標籤與分數。
+- 腳本：[02-objectDetect.py](02-objectDetect.py)
+- 用途：讀取 `image.jpg`，使用 MediaPipe 官方 EfficientDet Lite0 模型，於終端輸出偵測框、標籤與分數。
 - 需求：
-	- 專案根目錄需放置 `image.jpg`
-	- 第一次執行會自動下載模型 `efficientdet_lite0.tflite`（需網路）
-	- 模型來源：MediaPipe 官方提供之 EfficientDet Lite0 物件偵測模型（COCO 2017 資料集，90 類別）
-	- 可偵測類別（COCO 90 類，英／中對照，6 欄）：
+  - 專案根目錄需放置 `image.jpg`
+  - 第一次執行會自動下載模型 `efficientdet_lite0.tflite`（需網路）
+  - 模型來源：MediaPipe 官方提供之 EfficientDet Lite0（COCO 2017 資料集，90 類別）
+
+執行：
+
+```powershell
+python 02-objectDetect.py
+```
+
+可偵測類別（COCO 90 類，英／中對照，6 欄）：
 
 | English           | 正體中文   | English            | 正體中文   | English           | 正體中文   |
 |-------------------|------------|--------------------|------------|-------------------|------------|
@@ -122,80 +74,61 @@ python 01-test.py
 | vase              | 花瓶       | scissors           | 剪刀       | teddy bear        | 泰迪熊     |
 | hair drier        | 吹風機     | toothbrush         | 牙刷       | -                 | -          |
 
-### 執行步驟
+註：若模型下載失敗或 `image.jpg` 不存在，腳本會拋出錯誤並停止；請確認網路與檔案路徑後重試。
 
-```powershell
-python 02-objectDetect.py
-```
+### 03｜物件偵測（USB 攝影機串流）
 
-### 預期輸出（示意）
-
-```
-檔案: image.jpg
-偵測數量: 1
-偵測 1: label=dog, score=0.86, box=(x=21, y=4, w=572, h=440)
-```
-
-若模型下載失敗或 `image.jpg` 不存在，腳本會拋出錯誤並停止；請確認網路與檔案路徑後重試。
-
-## 🎥 串流物件偵測範例 (USB 攝影機)
-
-- 範例腳本：[03-objectDetect_stream.py](03-objectDetect_stream.py)
-- 功能：使用 USB 攝影機即時偵測物件，於視窗顯示即時影像，並在畫面上標示偵測到的物件名稱（含分數）。
+- 腳本：[03-objectDetect_stream.py](03-objectDetect_stream.py)
+- 用途：使用 USB 攝影機即時偵測物件，於視窗顯示即時影像，並在畫面上標示物件名稱（含分數）。
 - 需求：
-	- Shows requires OpenCV（本專案環境已安裝）
 	- 需可正常開啟攝影機（預設攝影機 ID = 0）
 	- 第一次執行會自動下載模型 `efficientdet_lite0.tflite`（需網路）
 
-### 執行步驟
+執行：
 
 ```powershell
 python 03-objectDetect_stream.py
 ```
 
-### 操作方式
+操作方式：
 
 - 會開啟視窗顯示即時影像與偵測框
 - 按 `q` 鍵離開
 
 若無法開啟攝影機，請在程式內調整 `DEFAULT_CAMERA_ID`（例如改成 1、2）後重試。
 
-## ✋ 手部地標偵測範例 (USB 攝影機)
+### 04｜手部地標（USB 攝影機串流）
+
+- 腳本：[04-hand_landmark.py](04-hand_landmark.py)
+- 用途：使用 USB 攝影機即時偵測左手地標（21 個關鍵點：0~20），於視窗顯示即時影像，並在每個地標點旁標示編號。
+- 需求：
+	- 需可正常開啟攝影機（預設攝影機 ID = 0）
+	- 第一次執行會自動下載模型 `hand_landmarker.task`（需網路）
+	- 模型來源：MediaPipe 官方提供之 HandLandmarker（float16 版本）
+
 <img width="908" height="548" alt="image" src="https://github.com/user-attachments/assets/083c3b52-ff25-4986-89f7-c1cbb05341c8" />
 
-- 範例腳本：[04-hand_landmark.py](04-hand_landmark.py)
-- 功能：使用 USB 攝影機即時偵測左手地標（21 個關鍵點：0~20），於視窗顯示即時影像，並在每個地標點旁標示編號。
-- 需求：
-  - 需可正常開啟攝影機（預設攝影機 ID = 0）
-  - 第一次執行會自動下載模型 `hand_landmarker.task`（需網路）
-  - 模型來源：MediaPipe 官方提供之 HandLandmarker 模型（float16 版本）
-
-### 手部地標點說明
-
-MediaPipe Hands 共偵測 21 個地標點（編號 0~20）：
-
-- **0**: WRIST（手腕）
-- **1-4**: THUMB（拇指）：CMC, MCP, IP, TIP (cmc為掌指關節基底, mcp為掌指關節, ip為指間關節, tip為指尖)
-- **5-8**: INDEX_FINGER（食指）：MCP, PIP, DIP, TIP
-- **9-12**: MIDDLE_FINGER（中指）：MCP, PIP, DIP, TIP
-- **13-16**: RING_FINGER（無名指）：MCP, PIP, DIP, TIP
-- **17-20**: PINKY（小指）：MCP, PIP, DIP, TIP
-
-### 執行步驟
+執行：
 
 ```powershell
 python 04-hand_landmark.py
 ```
 
-### 操作方式
+操作方式：
 
 - 會開啟視窗顯示即時影像與左手地標點（紅色圓點 + 編號）
 - 按 `q` 鍵離開
 
-### 備註
+手部地標點（0~20）摘要：
 
-- 本範例僅顯示「左手」的地標點（right 判斷），若需偵測右手或雙手，可修改程式內的篩選邏輯。
-- 若無法開啟攝影機，請調整 `DEFAULT_CAMERA_ID`（例如改成 1、2）後重試。
+- **0**：WRIST（手腕）
+- **1-4**：THUMB（拇指）：CMC / MCP / IP / TIP
+- **5-8**：INDEX_FINGER（食指）：MCP / PIP / DIP / TIP
+- **9-12**：MIDDLE_FINGER（中指）：MCP / PIP / DIP / TIP
+- **13-16**：RING_FINGER（無名指）：MCP / PIP / DIP / TIP
+- **17-20**：PINKY（小指）：MCP / PIP / DIP / TIP
+
+備註：本範例僅顯示「左手」地標；若需偵測右手或雙手，可修改程式內的篩選邏輯。
 
 ## 📦 套件安裝
 
@@ -244,6 +177,50 @@ pip install psutil
 - **2025-12-30**: 新增 02-objectDetect (MediaPipe Tasks) 單張圖片物件偵測範例，並自動下載 EfficientDet Lite0 模型
 - **2025-12-30**: 新增 03-objectDetect_stream (MediaPipe Tasks + OpenCV) USB 攝影機串流物件偵測範例
 - **2025-12-31**: 新增 04-hand_landmark (MediaPipe HandLandmarker) USB 攝影機左手地標偵測範例（21 點）
+
+## 🛠️ 環境資訊（由 01-test.py 輸出）
+
+以下為執行 [01-test.py](01-test.py) 取得的環境資訊（更新：2025年12月30日）：
+
+### Python 環境
+
+- **Python 版本**: 3.12.12
+- **Python 編譯器**: MSC v.1929 64 bit (AMD64)
+- **Python 發行版**: Anaconda, Inc.
+- **作業系統**: Windows 11 (10.0.26100)
+- **系統架構**: AMD64
+- **處理器**: Intel64 Family 6 Model 94 Stepping 3, GenuineIntel
+
+### 已安裝套件
+
+#### MediaPipe
+- **版本**: 0.10.31
+- **安裝路徑**: `C:\Users\tseng\miniconda3\envs\mp-py312\Lib\site-packages\mediapipe\`
+
+#### OpenCV
+- **版本**: 4.12.0
+- **安裝路徑**: `C:\Users\tseng\miniconda3\envs\mp-py312\Lib\site-packages\cv2\`
+- **CUDA 支援**: ❌ 未啟用
+
+#### PyTorch
+- **版本**: 2.9.1+cu130
+- **CUDA 版本**: 13.0
+- **cuDNN 版本**: 91200
+- **CUDA 可用**: ✅ 是
+
+### 🎮 GPU 資訊
+
+- **GPU 裝置數量**: 1
+- **GPU 型號**: NVIDIA GeForce RTX 3060
+- **顯示記憶體**: 12.00 GB
+- **CUDA 核心數**: 28 個多處理器
+- **計算能力**: 8.6
+
+### ⚠️ 注意事項
+
+- OpenCV 目前使用 CPU 版本，未啟用 CUDA 支援
+- TensorFlow 未安裝
+- psutil 未安裝（無法顯示詳細系統記憶體資訊）
 
 
 ---
